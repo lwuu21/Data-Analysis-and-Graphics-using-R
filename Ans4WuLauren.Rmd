@@ -1,0 +1,270 @@
+## Lab 4: Data Analysis and Graphics using R
+
+### Lauren Wu
+
+This assignment is due at 6:00 PM CDT the day of lab. Please provide answers in <span style="color:blue"> blue text </span> and code in code chunks. Knit this file when you are done to check that all code runs. Remember to rename the file to contain *your actual* Last and First name and **submit both the Rmd and Html file to the submission link on Canvas**.
+
+<span style="color:purple"> All charts you create are expected to have labeled axes and titles and be visually compelling. You do not need to download or save your figures, but your code should be complete, meaning that the HTML output should display all the graphics. Proofread your HTML to make sure everything looks correct. \span
+
+**1.1** 
+```{r}
+proteinData <- read.csv("protein_data.csv", header = TRUE, stringsAsFactors = FALSE)
+
+proteinDataVec <- proteinData$length
+length(proteinDataVec) == nrow(proteinData)
+```
+
+
+**1.2**
+<span style="color:blue"> 
+The histogram has a central tendency somewhere between 0 to 500 AA. Its spread is between 0 and 5000 AA. It is skewed right.
+\span
+
+
+**1.3**
+```{r}
+caffData <- read.csv("caffeine_jjp.csv")
+hist(caffData$Caffeine_mg_in_16_oz_coffee, main = "Caffeine in Different Coffee Brands", xlab = "coffee amount (mg in 16 oz)", ylab = "frequency", breaks=2)
+```
+<span style="color:blue"> 
+The histogram have a central tendency somewhere around 200. Its spread is from 100 to 300 mg in 16 oz. It is fairly symmetrical and not really skewed.
+\span
+
+
+**1.4**
+```{r}
+hist(caffData$Caffeine_mg_in_16_oz_coffee, main = "Caffeine in Different Coffee Brands", xlab = "coffee amount (mg in 16 oz)", ylab = "frequency", breaks=50)
+
+hist(caffData$Caffeine_mg_in_16_oz_coffee, main = "Caffeine in Different Coffee Brands", xlab = "coffee amount (mg in 16 oz)", ylab = "frequency", breaks=20)
+
+hist(caffData$Caffeine_mg_in_16_oz_coffee, main = "Caffeine in Different Coffee Brands", xlab = "coffee amount (mg in 16 oz)", ylab = "frequency", breaks=10)
+```
+
+<span style="color:blue"> 
+Increasing the number for the breaks parameter increases the distance between every bar of the histogram.
+\span
+
+
+**1.5**
+```{r}
+tigerData <- read.csv("DeathsFromTigers.csv")
+tigerTable <- sort(table(tigerData$activity), decreasing=T)
+
+length(tigerTable)
+```
+
+
+**1.6**
+```{r}
+
+barplot(tigerTable, main = "Number of ppl in Tiger Attacks", xlab = "Activities", ylab = "Frequency", las=2)
+```
+
+
+**1.7**
+```{r}
+pie(tigerTable, main="Activities before Tiger Attacks")
+```
+
+
+**1.8**
+```{r}
+measlesData <- read.csv("MeaslesOutbreaks.csv", header=TRUE, stringsAsFactors = FALSE)
+```
+
+
+**1.9**
+```{r}
+plot(measlesData$yearByQuarter, measlesData$confirmedCases,  main="measles Data", xlab = "year by quarter", ylab = "number of confirmed cases")
+```
+
+
+**1.10** 
+```{r}
+plot(measlesData$yearByQuarter, measlesData$confirmedCases,  main="measles Data", xlab = "year by quarter", ylab = "number of confirmed cases", type="l")
+```
+<span style="color:blue"> 
+This makes my graph a line-graph instead of a scatter plot. Measles outbreaks have an overall increasing trend with a drop in around 2010. This increase in Measles outbreak is correlated with declining vaccine uptake.
+\span
+
+Run each of the following commands ***individually*** (you can copy-paste each line into the console). It may take some time to install all the packages. If it takes longer than 2 minutes or you run into errors, please consult your TAs. 
+```{r eval = FALSE}
+if (!requireNamespace("BiocManager", quietly = TRUE)) install.packages("BiocManager")
+
+BiocManager::install() 
+#installs Bioconductor
+#if asked Update all/some/none? [a/s/n/]: , type a in console
+
+BiocManager::install("multtest") 
+#uses Bioconductor's installation tool to install the multtest package
+#if asked Update all/some/none? [a/s/n/]: , type a in console
+```
+
+Once all of the packages are installed, run this code chunk:
+```{r}
+library(multtest)
+#loads a library of tools included in the multtest package, including the golub data
+data(golub)
+#loads the golub dataset
+
+
+```
+
+**2.1**
+<span style="color:blue"> 
+Gene names are characters & gene expression contain numbers. They have to be in separate matrices because a matrix can only have 1 class of elements in it. 
+\span
+
+
+**2.2**
+```{r}
+grep("cyclin D3", golub.gnames[,2], ignore.case = TRUE, useBytes = FALSE)
+golub.gnames[1042,2]
+```
+
+
+**2.3**
+```{r}
+golub.cl
+grep("0", golub.cl)
+```
+<span style="color:blue"> 
+columns 1 to 27 are ALL subtypes, and 28 to 38 are AML subtypes.
+\span
+
+
+**2.4**
+```{r}
+for (i in 1042){
+  ALLex <- mean(golub[i, 1:27])
+  AMLex <- mean(golub[i, 28:38])
+}
+ALLex 
+AMLex
+
+```
+
+
+**2.5**
+```{r}
+meanALL <- apply(golub[, 1:27], MARGIN = 1, FUN = mean)
+meanAML <- apply(golub[, 28:38], MARGIN = 1, FUN = mean)
+
+absMeanDiff <- abs(meanALL - meanAML)
+```
+
+
+**2.6**
+<span style="color:blue"> 
+Order(vector) returns the indices that would sort the x in ascending/descending order depending on its other parameters (if decreasing = TRUE, the order is descending. if decreasing = FALSE, the order is ascending).
+\span
+
+
+**2.7**
+```{r}
+meanALL <- apply(golub[, 1:27], MARGIN = 1, FUN = mean)
+meanAML <- apply(golub[, 28:38], MARGIN = 1, FUN = mean)
+newMatrix <- cbind(golub, absMeanDiff)
+
+absMeanDiff <- abs(meanALL - meanAML)
+
+soot <- sort(absMeanDiff, decreasing = TRUE)
+five <- soot[1:5]
+rowNUM <- c()
+for(i in 1:5){
+  position <- grep(five[i], newMatrix[,39], ignore.case = TRUE, useBytes = FALSE)
+  rowNUM <- c(rowNUM, position)
+}
+
+names <- c()
+for (i in rowNUM){
+  names <- c(names, golub.gnames[i,2])
+  
+}
+names
+```
+
+**2.8**
+<span style="color:blue"> 
+Figure 3 only used IL-8, and the other 4 genes were not found. A ranking based solely on differences in mean expression might be inadequate because it does not take outliers into account, which might skew the data. It also doesn't show the range of the data, which means that variance between subtypes cannot be compared. A better statistical metric might be median (which is more resistant to outliers) and standard deviation (which can show variance between subtypes).
+\span
+
+**2.9**
+```{r}
+gol.fac <- factor(golub.cl, levels=c(0,1), labels = c("ALL","AML"))
+gol.fac
+golub.cl
+```
+<span style="color:blue"> 
+factor() takes in the vector golub.cl, levels = takes in the information that golub.cl is composed of 0s and 1s, then labels = c() replaces each 0 with "ALL" & each 1 with "AML". This is then stored the variable gol.fac
+\span
+
+
+**2.10**
+```{r}
+stripchart(golub[1042,] ~ gol.fac, method = "jitter", vertical = TRUE, ylab = "Normalized cyclin D3 expression", xlab = "Patient cancer subtype")
+```
+
+**2.11**
+```{r}
+plot(golub[2663,],golub[2664,], xlab = "IL-8", ylab = "IL-8 precursor", col=gol.fac)
+plot(golub[2663,],golub[2124,], xlab="IL-8", ylab="Zyxin", col=gol.fac)
+```
+<span style="color:blue"> 
+The grpah for IL-8 and IL-8 precursor is more visually correlated than the graph for IL-8 and Zyxin (because there is a clearer trend).
+\span
+
+
+**2.12**
+```{r}
+#     ^remove eval = FALSE once you've finished the problem
+hist(golub[1042,1:27], freq=FALSE, main= "cyclin D3 Expression (ALL)", xlab = "gene expression") 
+#Hint: You also need to change one parameter of hist()
+```
+
+
+**2.13**
+```{r}
+par(mfrow = c(1,2))
+hist(golub[1042,1:27], freq=FALSE, main= "cyclin D3 Expression (ALL)", xlab = "gene expression") 
+hist(golub[1042,28:38], freq=FALSE, main= "cyclin D3 Expression (AML)", xlab = "gene expression")
+
+
+
+
+```
+<span style="color:blue"> 
+The 2nd table, cycin D3 Expression (AML) is more normally distributed. This is because the first table, cyclin D3 Expression (ALL) is more skewed left.
+\span
+
+
+**2.14**
+```{r}
+par(mfrow = c(1,2))
+hist(golub[1042,1:27], freq=FALSE, main= "cyclin D3 Expression (ALL)", xlab = "gene expression", xlim = range(-1,3))
+hist(golub[1042,28:38], freq=FALSE, main= "cyclin D3 Expression (AML)", xlab = "gene expression", xlim = range(-1, 3), ylim= c(0,0.8))
+```
+<span style="color:blue"> 
+The table for ALL patients have a central tendency with a greater value. ALL have a range from 0-3 and AML have a range from -1 - 1.5. ALL is skewed left, while AML have a more normal distribution.
+\span
+
+**2.15a**
+```{r}
+OnVec <- grep("oncogene", golub.gnames[,2], ignore.case = TRUE, useBytes = FALSE)
+length(OnVec)
+```
+
+**2.15b**
+```{r}
+ONCmeanALL <- apply(golub[OnVec, 1:27], MARGIN = 1, FUN = mean)
+ONCmeanAML <- apply(golub[OnVec, 28:38], MARGIN = 1, FUN = mean)
+ONCabsMeanDiff <- abs(ONCmeanALL - ONCmeanAML)
+
+ordered <- order(ONCabsMeanDiff, decreasing = TRUE) 
+
+golub.gnames[OnVec[ordered[1]], 2]
+
+```
+<span style="color:blue"> 
+GRO2 GRO2 oncogene is the most highly differenially expressed oncogene.
+\span
